@@ -7,10 +7,35 @@ import { readFile, readdir, stat } from 'fs/promises';
 import { join } from 'path';
 import { promisify } from 'util';
 import { existsSync } from 'fs';
+import { paymentMiddleware } from 'x402-express';
 
 const execFileAsync = promisify(execFile);
 const app = express();
 app.use(express.json());
+
+// x402 Payment Middleware — USDC micropayments for premium endpoints
+const PAYTO_ADDRESS = process.env.PAYTO_ADDRESS || '0xc2577139013B738405ff745e83e96C9dD8FE51d7';
+const X402_NETWORK = process.env.X402_NETWORK || 'base-sepolia';
+
+app.use(paymentMiddleware(
+  PAYTO_ADDRESS,
+  {
+    "/premium/search": {
+      price: "$0.01",
+      network: X402_NETWORK,
+      config: {
+        description: "Premium LLM-reranked search across verified human knowledge",
+      }
+    },
+    "/answer/:source/:id": {
+      price: "$0.001",
+      network: X402_NETWORK,
+      config: {
+        description: "Full verified answer document with source and metadata",
+      }
+    }
+  }
+));
 
 const PORT = process.env.PORT || 3847;
 const QMD = process.env.QMD_PATH || '/home/jack/.bun/bin/qmd';
