@@ -89,6 +89,20 @@ async function countFiles(dir) {
   return files.filter(f => f.endsWith('.md')).length;
 }
 
+// --- Static site ---
+import { dirname } from 'path';
+const SITE_DIR = join(import.meta.dirname, '..', 'site');
+app.use('/site', express.static(SITE_DIR));
+app.get('/', async (req, res) => {
+  const indexPath = join(SITE_DIR, 'index.html');
+  if (existsSync(indexPath)) {
+    const html = await readFile(indexPath, 'utf-8');
+    res.type('html').send(html);
+  } else {
+    res.redirect('/health');
+  }
+});
+
 // --- Routes ---
 
 app.get('/health', (req, res) => {
