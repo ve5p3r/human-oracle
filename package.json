@@ -8,8 +8,8 @@
     "scrape": "node scrapers/stackoverflow.js && node scrapers/reddit.js",
     "ingest": "bash scripts/ingest.sh",
     "compile": "npx hardhat compile",
-    "deploy": "npx hardhat run scripts/deploy.js --network baseSepolia",
-    "seed": "npx hardhat run scripts/seed-answers.js --network baseSepolia",
+    "deploy": "npx hardhat run scripts/deploy.cjs --network baseSepolia",
+    "seed": "npx hardhat run scripts/seed-answers.cjs --network baseSepolia",
     "test": "npx hardhat test"
   },
   "dependencies": {

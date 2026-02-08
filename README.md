@@ -1,8 +1,8 @@
-# 🧠 HumanOracle — Verified Human Knowledge On-Chain
+# 🧠 HumanOracle — A Market for Epistemic Certainty
 
-> *"When an LLM hallucinates, a Stack Overflow answer with 500 upvotes doesn't."*
+> *When an agent is about to deploy a contract, apply a K8s config, or execute a transaction — it pays USDC to verify its assumptions against community-validated knowledge. Checking costs $0.01. Being wrong costs everything.*
 
-**HumanOracle** is a decentralized knowledge oracle that makes verified human answers from Stack Overflow and Reddit queryable by AI agents via a REST API and on-chain smart contract with USDC micropayments on **Base Sepolia**.
+**HumanOracle** is a decentralized knowledge marketplace where AI agents pay to reduce downside risk before irreversible actions. Verified human answers from Stack Overflow, ServerFault, and Reddit are queryable via a REST API (with x402 micropayments) and an on-chain smart contract with USDC payments on **Base Sepolia**.
 
 Built for the [USDC Hackathon on Moltbook](https://www.moltbook.com) (m/usdc).
 
@@ -13,21 +13,26 @@ Built for the [USDC Hackathon on Moltbook](https://www.moltbook.com) (m/usdc).
 ```
                     ┌──────────────────────────────────┐
                     │        AI AGENT / dApp            │
-                    │  "Is this Solidity pattern safe?" │
+                    │  "Is this K8s config safe?"       │
                     └─────────┬────────────┬───────────┘
                               │            │
                     ┌─────────▼──┐   ┌─────▼───────────────┐
                     │  REST API  │   │  Smart Contract      │
                     │  :3847     │   │  Base Sepolia        │
                     │            │   │                      │
-                    │ /search    │   │  Free:               │
-                    │ /answer    │   │   hasAnswer()        │
-                    │ /tags      │   │   getAnswerMeta()    │
-                    │ /stats     │   │   getAnswersByTag()  │
-                    │ /premium   │   │  Premium (1 USDC):   │
-                    └─────┬──────┘   │   getVerifiedAnswer()│
-                          │          │  Challenge (0.5 USDC)│
-                    ┌─────▼──────┐   └──────────────────────┘
+                    │ Free:      │   │  Free:               │
+                    │  /search   │   │   hasAnswer()        │
+                    │  /tags     │   │   previewAnswer()    │
+                    │  /stats    │   │   getAnswerMeta()    │
+                    │            │   │   getAnswersByTag()  │
+                    │ x402 paid: │   │                      │
+                    │  /premium  │   │  Premium (1 USDC):   │
+                    │   $0.01    │   │   getVerifiedAnswer()│
+                    │  /answer   │   │                      │
+                    │   $0.001   │   │  Challenge (0.5 USDC)│
+                    └─────┬──────┘   └──────────────────────┘
+                          │
+                    ┌─────▼──────┐
                     │  QMD SEARCH │
                     │  ENGINE     │
                     │             │
@@ -39,14 +44,29 @@ Built for the [USDC Hackathon on Moltbook](https://www.moltbook.com) (m/usdc).
           ┌───────────────┼───────────────┐
           │               │               │
    ┌──────▼──────┐ ┌─────▼──────┐ ┌──────▼──────┐
-   │ Stack       │ │ Reddit     │ │ Future:     │
-   │ Overflow    │ │ 4 subs     │ │ GH Issues   │
-   │ 8 tags      │ │ r/solidity │ │ Discourse   │
-   │ 1,231 docs  │ │ r/ethdev   │ │ Audit repos │
+   │ Stack       │ │ ServerFault│ │ Reddit      │
+   │ Overflow    │ │ 15 tags    │ │ 5 subs      │
+   │ 1,231 docs  │ │ 280 docs   │ │ 83 docs     │
    └─────────────┘ └────────────┘ └─────────────┘
 ```
 
-**Data pipeline:** Scrapers → Markdown (YAML frontmatter) → QMD Collection (SQLite + vectors) → REST API + On-chain hashes
+**Dual payment rails:**
+- **On-chain:** `getVerifiedAnswer()` costs 1 USDC, contributor earns 70%
+- **x402 HTTP:** `/premium/search` costs $0.01 via HTTP 402 micropayments
+
+---
+
+## 📜 Deployed Contract
+
+| Property | Value |
+|----------|-------|
+| **Contract** | [`0x355335bA83B071565DD3Cd190E3d7F8b1dfA714f`](https://sepolia.basescan.org/address/0x355335bA83B071565DD3Cd190E3d7F8b1dfA714f) |
+| **Network** | Base Sepolia (Chain ID: 84532) |
+| **USDC** | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
+| **On-chain answers** | 225 |
+| **Premium Fee** | 1 USDC |
+| **Challenge Stake** | 0.5 USDC |
+| **Contributor Share** | 70% of query revenue |
 
 ---
 
@@ -80,7 +100,7 @@ echo "PRIVATE_KEY=0xYourPrivateKey" > .env
 npm run compile
 npm run deploy
 
-# Seed on-chain answers from Stack Overflow
+# Seed on-chain answers
 npm run seed
 ```
 
@@ -88,63 +108,32 @@ npm run seed
 
 ## 📡 API Endpoints
 
-| Method | Path | Description | Auth |
-|--------|------|-------------|------|
-| `GET` | `/health` | Service status + uptime | — |
-| `GET` | `/search?q=<query>&n=5&mode=search` | Search knowledge base | — |
-| `GET` | `/answer/:source/:id` | Full answer by source/ID | — |
-| `GET` | `/tags` | All tags with counts | — |
-| `GET` | `/stats` | Collection statistics | — |
-| `POST` | `/premium/search` | LLM-reranked search | USDC* |
+| Method | Path | Cost | Description |
+|--------|------|------|-------------|
+| `GET` | `/health` | Free | Service status + uptime |
+| `GET` | `/search?q=<query>&n=5&mode=search` | Free | Search knowledge base |
+| `GET` | `/tags` | Free | All tags with counts |
+| `GET` | `/stats` | Free | Collection statistics |
+| `GET` | `/answer/:source/:id` | $0.001 (x402) | Full answer document |
+| `POST` | `/premium/search` | $0.01 (x402) | LLM-reranked premium search |
 
 **Search modes:** `search` (BM25 keyword), `vsearch` (vector semantic), `query` (hybrid + LLM rerank)
 
-*\*Testnet mode: premium searches are free. Production would gate via on-chain USDC payment verification.*
-
-### Example Response
-
-```json
-{
-  "query": "reentrancy guard pattern",
-  "count": 5,
-  "results": [
-    {
-      "score": 12.34,
-      "title": "How to protect against reentrancy attacks in Solidity?",
-      "url": "https://stackoverflow.com/questions/12345678",
-      "source": "stackoverflow",
-      "votes": 234,
-      "tags": ["solidity", "smart-contracts", "security"],
-      "body_preview": "The checks-effects-interactions pattern..."
-    }
-  ]
-}
-```
+> **Note:** The API is self-hosted. Clone the repo and run `npm start` to use it locally. Premium endpoints use [x402](https://github.com/coinbase/x402) for USDC micropayments.
 
 ---
 
-## 📜 Smart Contract
+## 🔀 The Decision Loop
 
-**`HumanOracle.sol`** — Solidity 0.8.24, OpenZeppelin v5, optimized with viaIR
-
-| Property | Value |
-|----------|-------|
-| **Network** | Base Sepolia (Chain ID: 84532) |
-| **USDC** | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
-| **Premium Fee** | 1 USDC |
-| **Challenge Stake** | 0.5 USDC |
-
-### Contract Functions
-
-| Function | Tier | Description |
-|----------|------|-------------|
-| `hasAnswer(query)` | Free | Check if verified answer exists |
-| `getAnswerMeta(query)` | Free | Get answer count, tags, top votes |
-| `getAnswersByTag(tag)` | Free | List query hashes for a tag |
-| `getVerifiedAnswer(query)` | 1 USDC | Full answer with content hash + source URL |
-| `challengeAnswer(hash, idx)` | 0.5 USDC | Stake to challenge answer validity |
-| `submitAnswer(...)` | Oracle | Submit verified answer |
-| `submitAnswerBatch(...)` | Oracle | Batch submit answers |
+```
+1. Agent plans: kubectl apply -f deployment.yaml (rolling update + PVC resize)
+2. Agent queries: previewAnswer("K8s rolling update PVC resize")        [FREE]
+3. Preview returns: exists=true, answerCount=3, topVotes=423, hasAccepted=true
+4. Agent decides: 423 votes, accepted answer — worth $1 to check
+5. Agent pays: getVerifiedAnswer("K8s rolling update PVC resize")       [1 USDC]
+6. Answer reveals: known deadlock when PVC resize triggers during rolling update
+7. Agent ABORTS the deploy. Saves a production outage.
+```
 
 ---
 
@@ -153,10 +142,26 @@ npm run seed
 | Source | Coverage | Documents |
 |--------|----------|-----------|
 | **Stack Overflow** | 8 tags: solidity, ethereum, web3, smart-contracts, blockchain, defi, erc20, nft | 1,231 |
-| **Reddit** | 4 subs: r/solidity, r/ethereum, r/ethdev, r/cryptocurrency | 13 |
-| **Total** | — | **1,244** |
+| **ServerFault** | 15 tags: kubernetes, docker, nginx, ssl, dns, load-balancing, networking, etc. | 280 |
+| **Reddit** | 5 subs: r/devops, r/sysadmin, r/homelab, r/kubernetes, r/networking + crypto subs | 83 |
+| **Total** | — | **1,594** |
 
 Each document is a markdown file with YAML frontmatter (title, URL, votes, tags, acceptance status, timestamps).
+
+---
+
+## 🔑 Contract Functions
+
+| Function | Tier | Description |
+|----------|------|-------------|
+| `hasAnswer(query)` | Free | Check if verified answer exists |
+| `previewAnswer(query)` | Free | Confidence signals: count, votes, accepted, tags, title |
+| `getAnswerMeta(query)` | Free | Lightweight metadata |
+| `getAnswersByTag(tag)` | Free | List query hashes for a tag |
+| `getVerifiedAnswer(query)` | 1 USDC | Full answer — 70% goes to contributor |
+| `challengeAnswer(hash, idx)` | 0.5 USDC | Stake to challenge answer validity |
+| `submitContribution(...)` | Oracle | Submit knowledge as a contributor |
+| `submitAnswerBatch(...)` | Oracle | Batch submit answers |
 
 ---
 
@@ -164,23 +169,25 @@ Each document is a markdown file with YAML frontmatter (title, URL, votes, tags,
 
 Three search tiers for different quality/speed tradeoffs:
 
-1. **BM25 Keyword** (`mode=search`) — Fast, deterministic TF-IDF matching. Best for specific technical queries.
-2. **Vector Semantic** (`mode=vsearch`) — Embedding-based similarity. Catches conceptual matches across different terminology.
-3. **LLM Rerank** (`mode=query`) — Hybrid retrieval + LLM relevance scoring. Premium tier — best results for complex questions.
+1. **BM25 Keyword** (`mode=search`) — Fast, deterministic TF-IDF matching
+2. **Vector Semantic** (`mode=vsearch`) — Embedding-based similarity search
+3. **LLM Rerank** (`mode=query`) — Hybrid retrieval + LLM relevance scoring (premium)
 
 ---
 
-## 🧪 Commands
+## 🧪 Testing
 
-| Command | What it does |
-|---------|-------------|
-| `npm run ingest` | Full pipeline: scrape SO + Reddit → index into QMD |
-| `npm run scrape` | Run scrapers only (no indexing) |
-| `npm start` | Start REST API on port 3847 |
-| `npm run compile` | Compile Solidity contracts |
-| `npm run deploy` | Deploy to Base Sepolia (needs `PRIVATE_KEY` in `.env`) |
-| `npm run seed` | Seed on-chain answers from SO API |
-| `npm test` | Run Hardhat tests |
+28 Hardhat tests covering:
+- Answer submission (single + batch)
+- Free tier queries (hasAnswer, previewAnswer, getAnswerMeta, getAnswersByTag)
+- Premium tier (USDC payment, contributor revenue share)
+- Contributor economics (70/30 split, earnings tracking)
+- Challenge mechanism (stake, resolve, 2x payout)
+- Admin functions (oracle change, fee adjustment, withdrawals)
+
+```bash
+npm test
+```
 
 ---
 
@@ -191,19 +198,10 @@ Most oracles feed **price data** to contracts. HumanOracle feeds **verified huma
 | | Chainlink | UMA | **HumanOracle** |
 |---|---|---|---|
 | **Data type** | Price feeds, VRF | Optimistic assertions | Verified human knowledge |
-| **Source** | Node operators | Token-holder voting | Community platforms (SO, Reddit) |
-| **Use case** | DeFi pricing | Insurance, predictions | Agent knowledge verification |
-| **Query cost** | LINK token | UMA bond | **1 USDC (stable)** |
-| **Verification** | Consensus | Dispute game | Content hash + challenge |
-
-An agent about to deploy a Solidity contract can spend 1 USDC to check *"is there a known gotcha with this pattern?"* and get a verified, community-validated answer — or it can hallucinate and cost someone real money.
-
----
-
-## 📄 Documentation
-
-- **[Whitepaper](docs/WHITEPAPER.md)** — Full technical design, token economics, and security analysis
-- **[SKILL.md](SKILL.md)** — Agent-oriented usage guide with curl examples
+| **Source** | Node operators | Token-holder voting | Community platforms (SO, SF, Reddit) |
+| **Use case** | DeFi pricing | Insurance, predictions | Pre-action verification |
+| **Query cost** | LINK token | UMA bond | **1 USDC or $0.01 (x402)** |
+| **Verification** | Consensus | Dispute game | Content hash + challenge stake |
 
 ---
 
@@ -212,25 +210,42 @@ An agent about to deploy a Solidity contract can spend 1 USDC to check *"is ther
 ```
 human-oracle/
 ├── contracts/
-│   └── HumanOracle.sol       # Solidity smart contract
+│   ├── HumanOracle.sol        # V2 contract — marketplace with contributor economics
+│   └── MockUSDC.sol           # Test mock for USDC
 ├── api/
-│   └── server.js              # Express REST API
+│   └── server.js              # Express REST API with x402 micropayments
 ├── scrapers/
 │   ├── stackoverflow.js       # SO API scraper
+│   ├── serverfault.js         # ServerFault API scraper
 │   └── reddit.js              # Reddit JSON scraper
 ├── scripts/
-│   ├── deploy.js              # Hardhat deployment
-│   ├── seed-answers.js        # On-chain answer seeding
+│   ├── deploy.cjs             # Hardhat deployment
+│   ├── seed-answers.cjs       # SO answer seeding
+│   ├── seed-serverfault.cjs   # ServerFault answer seeding
+│   ├── seed-big.cjs           # Bulk seeding
 │   ├── ingest.sh              # Full data pipeline
 │   └── setup.sh               # Environment setup
+├── test/
+│   └── HumanOracle.test.cjs   # 28 Hardhat tests
+├── site/
+│   └── index.html             # Landing page with live on-chain count
 ├── data/                      # Scraped markdown files (gitignored)
 │   ├── stackoverflow/         # 1,231 Q&A files
-│   └── reddit/                # 13 post files
+│   ├── serverfault/           # 280 Q&A files
+│   ├── reddit/                # 13 crypto posts
+│   └── reddit-devops/         # 70 devops posts
 ├── docs/
-│   └── WHITEPAPER.md          # Technical whitepaper
-├── hardhat.config.js
+│   └── WHITEPAPER.md          # V3 whitepaper — epistemic certainty framing
+├── hardhat.config.cjs
 └── package.json
 ```
+
+---
+
+## 📄 Documentation
+
+- **[Whitepaper](docs/WHITEPAPER.md)** — Full technical design, epistemic certainty thesis, contributor economics
+- **[SKILL.md](SKILL.md)** — Agent-oriented usage guide with curl examples
 
 ---
 
