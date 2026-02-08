@@ -62,6 +62,7 @@ contract HumanOracle is Ownable {
     event AnswerSubmitted(bytes32 indexed queryHash, string questionTitle, uint256 votes, bool accepted);
     event AnswerQueried(bytes32 indexed queryHash, address indexed querier, uint256 fee);
     event AnswerChallenged(bytes32 indexed queryHash, uint256 indexed answerIndex, address challenger, uint256 stake);
+    event ChallengeResolved(bytes32 indexed queryHash, uint256 indexed answerIndex, uint256 challengeIndex, bool upheld, uint256 payout);
     event OracleChanged(address indexed oldOracle, address indexed newOracle);
     event FeesWithdrawn(address indexed to, uint256 amount);
 
@@ -204,6 +205,35 @@ contract HumanOracle is Ownable {
         }));
 
         emit AnswerChallenged(queryHash, index, msg.sender, challengeFee);
+    }
+
+    // ─── Challenge Resolution ─────────────────────────────────────────
+
+    /// @notice Resolve a challenge. Owner decides: if upheld, challenger gets stake + premium fee back.
+    ///         If rejected, stake is kept by the contract.
+    function resolveChallenge(bytes32 queryHash, uint256 answerIndex, uint256 challengeIndex, bool upheld) external onlyOwner {
+        Challenge storage c = _challenges[queryHash][answerIndex][challengeIndex];
+        require(!c.resolved, "HumanOracle: already resolved");
+        c.resolved = true;
+
+        if (upheld) {
+            // Challenger wins: return stake + reward from contract balance
+            uint256 reward = c.stake * 2; // double-or-nothing
+            uint256 bal = usdc.balanceOf(address(this));
+            uint256 payout = reward > bal ? bal : reward;
+            usdc.safeTransfer(c.challenger, payout);
+            emit ChallengeResolved(queryHash, answerIndex, challengeIndex, true, payout);
+        } else {
+            emit ChallengeResolved(queryHash, answerIndex, challengeIndex, false, 0);
+        }
+    }
+
+    /// @notice Get challenge details
+    function getChallenge(bytes32 queryHash, uint256 answerIndex, uint256 challengeIndex)
+        external view returns (address challenger, uint256 stake, uint256 timestamp, bool resolved)
+    {
+        Challenge storage c = _challenges[queryHash][answerIndex][challengeIndex];
+        return (c.challenger, c.stake, c.timestamp, c.resolved);
     }
 
     // ─── Admin ───────────────────────────────────────────────────────

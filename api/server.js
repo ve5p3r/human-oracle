@@ -209,8 +209,11 @@ app.post('/premium/search', async (req, res) => {
   const results = await qmdSearch(query, parseInt(n), 'query');
 
   const enriched = await Promise.all(results.map(async (r) => {
-    const meta = await parseFrontmatter(r.path);
-    const content = await readFile(r.path, 'utf-8').catch(() => '');
+    // Convert qmd://human-oracle/path to local file path
+    const localPath = r.path.replace(`qmd://${COLLECTION}/`, '');
+    const fullPath = join(DATA_DIR, localPath);
+    const meta = await parseFrontmatter(fullPath);
+    const content = await readFile(fullPath, 'utf-8').catch(() => '');
     return {
       score: r.score,
       path: r.path,
