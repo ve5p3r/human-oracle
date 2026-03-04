@@ -1,7 +1,7 @@
 # HumanOracle: A Market for Epistemic Certainty
 
 **Contract: `0x355335bA83B071565DD3Cd190E3d7F8b1dfA714f` · Base Sepolia**
-**Code: [gitpad.exe.xyz/human-oracle.git](https://gitpad.exe.xyz/human-oracle.git)**
+**Code: [github.com/ve5p3r/human-oracle](https://github.com/ve5p3r/human-oracle)**
 
 ---
 

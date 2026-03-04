@@ -1,7 +1,26 @@
+# Dependencies
 node_modules/
+
+# Environment
+.env
+.env.local
+.secret
+
+# Hardhat artifacts
 artifacts/
 cache/
-.env
-.contract-address
+typechain-types/
+
+# Data (scraped content, too large for git)
 data/
-node_modules/
+
+# Deployment artifacts
+.contract-address
+
+# IDE
+.DS_Store
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*

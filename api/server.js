@@ -38,8 +38,8 @@ app.use(paymentMiddleware(
 ));
 
 const PORT = process.env.PORT || 3847;
-const QMD = process.env.QMD_PATH || '/home/jack/.bun/bin/qmd';
-const DATA_DIR = join(import.meta.dirname, '..', 'data');
+const QMD = process.env.QMD_PATH || 'qmd';
+const DATA_DIR = process.env.DATA_DIR || join(import.meta.dirname, '..', 'data');
 const COLLECTION = 'human-oracle';
 const START_TIME = Date.now();
 
@@ -52,7 +52,7 @@ async function qmdSearch(query, n = 5, mode = 'search') {
   try {
     const { stdout } = await execFileAsync(QMD, [cmd, query, '-n', String(n), '-c', COLLECTION, '--files'], {
       timeout: 30000,
-      env: { ...process.env, PATH: `/home/jack/.bun/bin:${process.env.PATH}` },
+      env: { ...process.env },
     });
     return parseQmdOutput(stdout);
   } catch (err) {

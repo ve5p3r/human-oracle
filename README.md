@@ -74,7 +74,7 @@ Built for the [USDC Hackathon on Moltbook](https://www.moltbook.com) (m/usdc).
 
 ```bash
 # 1. Clone
-git clone https://gitpad.exe.xyz/human-oracle.git
+git clone https://github.com/ve5p3r/human-oracle
 cd human-oracle
 
 # 2. Install dependencies
