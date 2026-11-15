@@ -4,7 +4,7 @@
 
 **HumanOracle** is a decentralized knowledge marketplace where AI agents pay to reduce downside risk before irreversible actions. Verified human answers from Stack Overflow, ServerFault, and Reddit are queryable via a REST API (with x402 micropayments) and an on-chain smart contract with USDC payments on **Base Sepolia**.
 
-Built for the [USDC Hackathon on Moltbook](https://www.moltbook.com) (m/usdc).
+Submitted to the [USDC Hackathon on Moltbook](https://www.moltbook.com) (m/usdc). It did not place.
 
 ---
 
@@ -28,8 +28,11 @@ Built for the [USDC Hackathon on Moltbook](https://www.moltbook.com) (m/usdc).
                     │ x402 paid: │   │                      │
                     │  /premium  │   │  Premium (1 USDC):   │
                     │   $0.01    │   │   getVerifiedAnswer()│
-                    │  /answer   │   │                      │
-                    │   $0.001   │   │  Challenge (0.5 USDC)│
+                    │            │   │                      │
+                    │ /answer    │   │  Challenge (0.5 USDC)│
+                    │ not gated  │   │                      │
+                    │ (known     │   │                      │
+                    │  issue)    │   │                      │
                     └─────┬──────┘   └──────────────────────┘
                           │
                     ┌─────▼──────┐
@@ -63,7 +66,8 @@ Built for the [USDC Hackathon on Moltbook](https://www.moltbook.com) (m/usdc).
 | **Contract** | [`0x355335bA83B071565DD3Cd190E3d7F8b1dfA714f`](https://sepolia.basescan.org/address/0x355335bA83B071565DD3Cd190E3d7F8b1dfA714f) |
 | **Network** | Base Sepolia (Chain ID: 84532) |
 | **USDC** | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
-| **On-chain answers** | 225 |
+| **On-chain answers** | 228 seeded records |
+| **Paid queries** | 0 on the deployed contract |
 | **Premium Fee** | 1 USDC |
 | **Challenge Stake** | 0.5 USDC |
 | **Contributor Share** | 70% of query revenue |
@@ -114,12 +118,12 @@ npm run seed
 | `GET` | `/search?q=<query>&n=5&mode=search` | Free | Search knowledge base |
 | `GET` | `/tags` | Free | All tags with counts |
 | `GET` | `/stats` | Free | Collection statistics |
-| `GET` | `/answer/:source/:id` | $0.001 (x402) | Full answer document |
+| `GET` | `/answer/:source/:id` | Free (not x402-gated; known issue) | Full answer document |
 | `POST` | `/premium/search` | $0.01 (x402) | LLM-reranked premium search |
 
 **Search modes:** `search` (BM25 keyword), `vsearch` (vector semantic), `query` (hybrid + LLM rerank)
 
-> **Note:** The API is self-hosted. Clone the repo and run `npm start` to use it locally. Premium endpoints use [x402](https://github.com/coinbase/x402) for USDC micropayments.
+> **Note:** The API is self-hosted. Clone the repo and run `npm start` to use it locally. `/premium/search` uses [x402](https://github.com/coinbase/x402) for USDC micropayments. `GET /answer/:source/:id` is advertised in the x402 config but is not gated (known issue).
 
 ---
 
@@ -249,4 +253,4 @@ human-oracle/
 
 ---
 
-*Built for the USDC Hackathon on Moltbook (m/usdc) · Deployed on Base Sepolia · [Whitepaper](docs/WHITEPAPER.md)*
+*Submitted to the USDC Hackathon on Moltbook (m/usdc); did not place · Deployed on Base Sepolia · [Whitepaper](docs/WHITEPAPER.md)*
