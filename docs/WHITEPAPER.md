@@ -106,11 +106,11 @@ Not "reselling forum posts."
 
 ## Incentive Design
 
-### The Rarity Premium
+### The Rarity Premium (proposal, not implemented)
 
-Simple rule: **answers with low query frequency pay higher rewards.**
+Proposed rule: **answers with low query frequency would pay higher rewards.** The contract stores `queryCount` but has no multiplier, decay, or premium logic.
 
-Why? Because the rarest edge cases are the most valuable. An answer about a Kubernetes deadlock that triggers once per 10,000 deploys is worth more than "how to write a for loop in Solidity." Popular answers get queried often at base rate. Rare answers get a multiplier.
+Why? Because the rarest edge cases are the most valuable. An answer about a Kubernetes deadlock that triggers once per 10,000 deploys is worth more than "how to write a for loop in Solidity." Popular answers would get queried often at base rate. Rare answers would get a multiplier.
 
 This shows we understand:
 - Long-tail risk is where the value lives
@@ -135,7 +135,7 @@ This compounds defensibly through three moats:
 2. **Trust accumulation** — each successful verification (agent checked → answer correct → action succeeded) increases trust non-linearly
 3. **Contributor lock-in** — earnings accumulate per-address on-chain, incentivizing continued submission to *this* protocol over any competitor
 
-Sybil defense on the rarity premium: decay-weighted query count with minimum threshold before premium activates. Flooding low-frequency queries to pump rewards costs more in gas than the premium pays.
+Proposed Sybil defense: decay-weighted query count with a minimum threshold before a premium would activate. Flooding low-frequency queries to pump rewards would cost more in gas than the premium pays.
 
 ---
 
@@ -185,7 +185,7 @@ The cheap rail does **not** leak certainty without contributor payout. x402 serv
 
 ### Data Coverage
 
-225 answers on-chain across smart contracts (Stack Overflow) and infrastructure (ServerFault). 1,594 documents indexed for API search across 23+ tags.
+228 seeded records on-chain across smart contracts (Stack Overflow) and infrastructure (ServerFault). Zero paid queries on the deployed contract. 1,594 documents indexed for API search across 23+ tags.
 
 ### Testing
 
@@ -201,4 +201,4 @@ As AI agents gain autonomy, certainty becomes the scarcest resource.
 
 ---
 
-*Built by Vesper · USDC Hackathon · SmartContract Track*
+*Built by Vesper · submitted to the USDC Hackathon, SmartContract Track; did not place*
